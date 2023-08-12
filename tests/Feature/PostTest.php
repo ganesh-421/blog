@@ -30,6 +30,7 @@ class PostTest extends TestCase
         $this->user = User::factory()->create();
         $this->category = Category::factory()->create();
     }
+    // testing views
     public function test_homepage_contains_empty_marker()
     {
         $response = $this->actingAs($this->user)->get('/');
@@ -55,7 +56,7 @@ class PostTest extends TestCase
         });
 
     }
-    public function test_post_pagination_working()
+    public function test_post_pagination_is_working_if_larger_number_of_posts()
     {
         $posts = Post::factory(7)->create();
         $resp = $this->actingAs($this->user)->get('/');
@@ -64,6 +65,7 @@ class PostTest extends TestCase
             return !$posts->contains($last);
         });
     }
+    // testing roles
     public function test_admin_required_to_visit_admin_panel()
     {
         $resp = $this->actingAs($this->admin)->get('/admin/posts');
@@ -86,6 +88,7 @@ class PostTest extends TestCase
         $resp = $this->actingAs($this->user)->get('/admin/posts');
         $resp->assertStatus(403);
     }
+    // database testing
     public function test_post_can_be_created_by_admin()
     {
         $post = [
@@ -110,19 +113,47 @@ class PostTest extends TestCase
         $this->assertEquals($lastPost->title, $post['title']);
         $this->assertEquals($lastPost->slug, $post['slug']);
     }
+
     public function test_post_edit_form_contains_correct_values()
     {
         $post = Post::factory()->create();
         $resp = $this->actingAs($this->admin)->get('/admin/posts/' . $post->slug . '/edit');
         $resp->assertStatus(200);
+        // it won escape the html tags
         $resp->assertSee('value="' .  $post->title . '"', false);
         $resp->assertSee('value="' .  $post->slug . '"', false);
-        // $resp->assertSee('value="' .  strip_tags($post->excerpt) . '"', false);
-        // $resp->assertSee('value="' .  strip_tags($post->body) . '"', false);
-        // $resp->dd();
-        // $resp->assertSee('value="' .  $post->excerpt . '"', false);
-        // $resp->assertSee('value="' .  $post->body . '"', false);
+        // escape html tags
+        $resp->assertSee($post->excerpt);
+        $resp->assertSee($post->body);
         $resp->assertViewHas('post', $post);
-
+    }
+    public function test_post_can_be_updated_if_authorized()
+    {
+        $post = Post::factory()->create();
+        $resp = $this->actingAs($this->admin)->put('admin/posts/' . $post->slug);
+    }
+    public function test_update_post_validation_error_redirect_back_to_form()
+    {
+        $post = Post::factory()->create();
+        $resp = $this->actingAs($this->admin)->put('admin/posts/' . $post->slug, [
+            "user_id" => '',
+            "category_id" => '',
+            'title' => '',
+            'slug' => '',
+            'excerpt' => '',
+            'body' => '',
+        ]);
+        $resp->assertStatus(302);
+        $resp->assertSessionHasErrors(['category_id', 'title', 'slug', 'excerpt', 'body']);
+        $resp->assertInvalid(['category_id', 'title', 'slug', 'excerpt', 'body']);
+    }
+    public function test_product_delete_sucessful()
+    {
+        $post = Post::factory()->create();
+        $resp = $this->actingAs($this->admin)->delete('/admin/posts/' . $post->slug);
+        $resp->assertStatus(302);
+        // $resp->assertRedirect('admin/posts');
+        $this->assertDatabaseMissing('posts', $post->toArray());
+        $this->assertDatabaseCount('posts', 0);
     }
 }

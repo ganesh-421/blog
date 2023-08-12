@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use function Illuminate\Events\queueable;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -28,7 +29,13 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Event::listen(
+        //     PostCreated::class,
+        //     [Event::listen(queable(function(PostCreated $event) {
+        //         ;
+        //     }))]
+        // );
+
     }
 
     /**

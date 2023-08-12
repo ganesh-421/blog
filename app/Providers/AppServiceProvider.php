@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
         // Paginator::useBootstrapFour();
         // Model::unguard();
         Gate::define('admin', function (User $user) {
-            return $user->username == "Ganesh@gmail.com";
+            return $user->email == "admin@gmail.com";
         });
         // to make directive directly.. (@admin)
         Blade::if('admin', function () {

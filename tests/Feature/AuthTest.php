@@ -28,7 +28,7 @@ class AuthTest extends TestCase
         $response->assertRedirect('/login');
         $response->assertStatus(302);
     }
-    public function test_login_redirects_to_posts()
+    public function test_adter_login_redirects_users_to_posts()
     {
         $user = User::factory()->create([
             'password' => 'password',
@@ -42,5 +42,16 @@ class AuthTest extends TestCase
         // $resp = $this->actingAs($user)->get('/login');
         // $resp->assertRedirect('/');
 
+    }
+    /**
+     * in laravel resource, validation error returns 422 status code
+     * in laravel resource, authentication error returns 401 status code
+     * in laravel resource, authorization error returns 403 status code
+     * in laravel resource, sucessfully stored resource returns 201 status code
+     */
+    public function test_api_returns_current_user_information()
+    {
+        $resp = $this->actingAs($this->user)->getJson('api/user');
+        $resp->assertJson($this->user->toArray());
     }
 }

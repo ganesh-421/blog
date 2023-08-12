@@ -53,6 +53,7 @@ class AdminPostController extends Controller
     public function update(Post $post)
     {
         $attr = $this->validatePost($post);
+
         $attr['user_id'] = auth()->id();
         if (isset($attr['thumbnail']) ?? false) {
             $attr['thumbnail'] = request('thumbnail')->store('thumbnails');
